@@ -3,12 +3,42 @@
 
 import os
 
-running = True
+class Contact():
+    def __init__(self, first, last, phone):
+        self.first = first
+        self.last = last
+        self.full_name = "%s %s" % (self.first, self.last)
+        self.phone = phone
+    
+    def getFirstName(self):
+        return self.first
+    
+    def getLastName(self):
+        return self.last
+
+    def getFullName(self):
+        return self.full_name
+
+    def getPhoneNumber(self):
+        return self.phone
+
+def getContactFirst(contact):
+    return contact.getFirstName()
+
+def getContactLast(contact):
+    return contact.getLastName()
+
+def getContactNumber(contact):
+    return contact.getPhoneNumber()
+
 userInput = ''
-phonebook = [
-    {'first': 'Default', 'last': 'User', 'number': '555-5555'},
-    {'first': 'Test', 'last': 'User', 'number': '444-4444'}
-]
+phonebook = []
+
+## Test Data
+test_user1 = Contact('Test', 'User', '555-5555')
+test_user2 = Contact('Default', 'User', '000-0000')
+phonebook.append(test_user1)
+phonebook.append(test_user2)
 
 ## Print program header
 def printHeader():
@@ -16,47 +46,32 @@ def printHeader():
     print 'Contact List'
     print '====================='
 
-## Return entry's first name
-def getFirstName(entry):
-    return entry['first']
-
-## Return entry's last name
-def getLastName(entry):
-    return entry['last']
-
-## Return entry's phone number
-def getPhoneNumber(entry):
-    return entry['number']
-
 ## Look up an entry
-def lookUpEntry():
+def lookUpEntry(phonebook):
     printHeader()
     print "Look Up Entry"
 
     count = 0
-    search = raw_input("Search for entry: ").lower()
+    search = raw_input("Search for entry: ").capitalize()
 
     printHeader()
 
-    sortedList = sorted(phonebook, key=getFirstName)
-    for i in xrange(len(phonebook)):
-        first = phonebook[i]['first']
-        last = phonebook[i]['last']
-        full = "%s %s" % (phonebook[i]['first'], phonebook[i]['last'])
-        num = phonebook[i]['number']
-        if search == (first.lower()) or search == (last.lower()) or search == (full.lower()) or search == num:
-            first = phonebook[i]['first']
-            last = phonebook[i]['last']
-            number = phonebook[i]['number']
-            print '%s %s: %s\n' % (first, last, number)
+    sortedList = sorted(phonebook, key=getContactFirst)
+    for contact in phonebook:
+        first = contact.getFirstName()
+        last = contact.getLastName()
+        full = contact.getFullName()
+        num = contact.getPhoneNumber()
+        if search == first or search == last or search == full or search == num:
+            print '%s %s: %s\n' % (first, last, num)
             count += 1
     if count == 0:
-        print "No entry found for '%s'." % search.capitalize()
+        print "No entry found for '%s'." % search
     raw_input("Press 'Enter' to continue...")
     
 
 ## Create an entry
-def createEntry():
+def createEntry(phonebook):
     printHeader()
     print "Create Entry"
 
@@ -69,38 +84,41 @@ def createEntry():
         first = name
         last = raw_input("Enter last name: ")
     phone = raw_input("Enter phone number: ")
-    phonebook.append({'first': first.capitalize(), 'last': last.capitalize(), 'number': phone})
+    newcontact = Contact(first, last, phone)
+    phonebook.append(newcontact)
     print "\nEntry set for %s %s: %s" % (first, last, phone)
     raw_input("Press 'Enter' to continue...")
 
 ## Delete an entry
-def deleteEntry():
+def deleteEntry(phonebook):
     printHeader()
     print "Delete Entry"
 
+    newPhonebook = []
     count = 0
-    search = raw_input("Enter full name: ")
-    i = 0
-    listLength = len(phonebook)
-    while i < listLength:
-        full = "%s %s" % (phonebook[i]['first'], phonebook[i]['last'])
-        if search == full:
-            if raw_input("Delete %s (%s)? (y/n): " % (full, phonebook[i]['number'])) == 'y':
-                phonebook.pop(i)
-                print "Entry deleted for %s." % search
-                listLength -= 1
-                i -= 1
+    search = raw_input("Enter name: ")
+    for contact in phonebook:
+        first = contact.getFirstName()
+        last = contact.getLastName()
+        full = contact.getFullName()
+        nameAndNum = "%s (%s)" % (full, contact.getPhoneNumber())
+        if search == first or search == last or search == full:
+            if raw_input("Delete %s? (y/n): " % (nameAndNum)) == 'y':
+                print "Entry deleted for %s." % (nameAndNum)
                 count += 1
             else:
                 print "Entry skipped."
+                newPhonebook.append(contact)
                 count += 1
-        i += 1
+        else:
+            newPhonebook.append(contact)
     if count == 0:
         print "No entry found for '%s'." % search
     raw_input("Press 'Enter' to continue...")
+    return newPhonebook
 
 ## List all entries
-def listEntries():
+def listEntries(phonebook):
     select = ''
     sortedList = []
     printHeader()
@@ -111,11 +129,11 @@ def listEntries():
     print "3. Phone Number"
     select = raw_input("Select an option: ")
     if select == '1':
-        sortedList = sorted(phonebook, key=getFirstName)
+        sortedList = sorted(phonebook, key=getContactFirst)
     elif select == '3':
-        sortedList = sorted(phonebook, key=getPhoneNumber)
+        sortedList = sorted(phonebook, key=getContactNumber)
     else:
-        sortedList = sorted(phonebook, key=getLastName)
+        sortedList = sorted(phonebook, key=getContactLast)
 
     printHeader()
 
@@ -123,9 +141,9 @@ def listEntries():
         print "Contact list empty."
     else:
         for i in range(len(sortedList)):
-            first = sortedList[i]['first']
-            last = sortedList[i]['last']
-            number = sortedList[i]['number']
+            first = sortedList[i].getFirstName()
+            last = sortedList[i].getLastName()
+            number = sortedList[i].getPhoneNumber()
             print '%s %s: %s\n' % (first, last, number)
     raw_input("Press 'Enter' to continue...")
 
@@ -139,17 +157,16 @@ def printMenu():
     print '5. Quit'
 
 ## Main loop
-while running:
+while userInput != '5':
     printMenu()
     userInput = raw_input("Select an option: ")
     if userInput == '1':
-        lookUpEntry()
+        lookUpEntry(phonebook)
     elif userInput == '2':
-        createEntry()
+        createEntry(phonebook)
     elif userInput == '3':
-        deleteEntry()
+        phonebook = deleteEntry(phonebook)
     elif userInput == '4':
-        listEntries()
+        listEntries(phonebook)
     elif userInput == '5':
-        running = False
         os.system('clear')
