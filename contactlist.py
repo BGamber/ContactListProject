@@ -1,7 +1,7 @@
-### Electronic Phonebook - Ben Gamber
+### Electronic Contact List - Ben Gamber
 ### Look up, create, and modify contact entries
 
-import os
+import os, time, pickle
 
 class Contact(object):
     def __init__(self, first, last, phone):
@@ -31,15 +31,6 @@ def getContactLast(contact):
 def getContactNumber(contact):
     return contact.getPhoneNumber()
 
-userInput = ''
-phonebook = []
-
-## Test Data
-test_user1 = Contact('Test', 'User', '555-5555')
-test_user2 = Contact('Default', 'User', '000-0000')
-phonebook.append(test_user1)
-phonebook.append(test_user2)
-
 ## Print program header
 def printHeader():
     os.system('clear')
@@ -47,7 +38,7 @@ def printHeader():
     print '====================='
 
 ## Look up an entry
-def lookUpEntry(phonebook):
+def lookUpEntry(contactlist):
     printHeader()
     print "Look Up Entry"
 
@@ -56,8 +47,8 @@ def lookUpEntry(phonebook):
 
     printHeader()
 
-    sortedList = sorted(phonebook, key=getContactFirst)
-    for contact in phonebook:
+    sortedList = sorted(contactlist, key=getContactFirst)
+    for contact in contactlist:
         first = contact.getFirstName()
         last = contact.getLastName()
         full = contact.getFullName()
@@ -71,7 +62,7 @@ def lookUpEntry(phonebook):
     
 
 ## Create an entry
-def createEntry(phonebook):
+def createEntry(contactlist):
     printHeader()
     print "Create Entry"
 
@@ -86,19 +77,19 @@ def createEntry(phonebook):
         last = raw_input("Enter last name: ")
     phone = raw_input("Enter phone number: ")
     newcontact = Contact(first, last, phone)
-    phonebook.append(newcontact)
+    contactlist.append(newcontact)
     print "\nEntry set for %s %s: %s" % (first, last, phone)
     raw_input("Press 'Enter' to continue...")
 
 ## Delete an entry
-def deleteEntry(phonebook):
+def deleteEntry(contactlist):
     printHeader()
     print "Delete Entry"
 
-    newPhonebook = []
+    newContactList = []
     count = 0
-    search = raw_input("Enter name: ")
-    for contact in phonebook:
+    search = raw_input("Enter name: ").capitalize()
+    for contact in contactlist:
         first = contact.getFirstName()
         last = contact.getLastName()
         full = contact.getFullName()
@@ -109,17 +100,17 @@ def deleteEntry(phonebook):
                 count += 1
             else:
                 print "Entry skipped."
-                newPhonebook.append(contact)
+                newContactList.append(contact)
                 count += 1
         else:
-            newPhonebook.append(contact)
+            newContactList.append(contact)
     if count == 0:
         print "No entry found for '%s'." % search
     raw_input("Press 'Enter' to continue...")
-    return newPhonebook
+    return newContactList
 
 ## List all entries
-def listEntries(phonebook):
+def listEntries(contactlist):
     select = ''
     sortedList = []
     printHeader()
@@ -130,24 +121,41 @@ def listEntries(phonebook):
     print "3. Phone Number"
     select = raw_input("Select an option: ")
     if select == '1':
-        sortedList = sorted(phonebook, key=getContactFirst)
+        sortedList = sorted(contactlist, key=getContactFirst)
     elif select == '3':
-        sortedList = sorted(phonebook, key=getContactNumber)
+        sortedList = sorted(contactlist, key=getContactNumber)
     else:
-        sortedList = sorted(phonebook, key=getContactLast)
+        sortedList = sorted(contactlist, key=getContactLast)
 
     printHeader()
 
     if len(sortedList) == 0:
         print "Contact list empty."
     else:
-        for i in range(len(sortedList)):
-            first = sortedList[i].getFirstName()
-            last = sortedList[i].getLastName()
-            number = sortedList[i].getPhoneNumber()
-            print '%s %s: %s\n' % (first, last, number)
+        for contact in sortedList:
+            full = contact.getFullName()
+            number = contact.getPhoneNumber()
+            print '%s: %s\n' % (full, number)
     raw_input("Press 'Enter' to continue...")
 
+def loadContactList():
+    newContactList = []
+    try:
+        open('contactlist.pickle')
+    except IOError:
+        print "No saved contact list found."
+    else:
+        with open('contactlist.pickle', 'r') as f:
+            newContactList = pickle.load(f)
+        print "Contact list loaded."
+        time.sleep(0.5)
+    return newContactList
+
+def saveContactList(contactlist):
+    print "Saving contact list..."
+    with open('contactlist.pickle', 'w') as f:
+        pickle.dump(contactlist, f)
+    time.sleep(0.5)
 ## Clear screen and list options
 def printMenu():
     printHeader()
@@ -157,17 +165,27 @@ def printMenu():
     print '4. List all entries'
     print '5. Quit'
 
+userInput = ''
+contactlist = loadContactList()
+
+## Test Data
+# test_user1 = Contact('Test', 'User', '555-5555')
+# test_user2 = Contact('Default', 'User', '000-0000')
+# contactlist.append(test_user1)
+# contactlist.append(test_user2)
+
 ## Main loop
 while userInput != '5':
     printMenu()
     userInput = raw_input("Select an option: ")
     if userInput == '1':
-        lookUpEntry(phonebook)
+        lookUpEntry(contactlist)
     elif userInput == '2':
-        createEntry(phonebook)
+        createEntry(contactlist)
     elif userInput == '3':
-        phonebook = deleteEntry(phonebook)
+        contactlist = deleteEntry(contactlist)
     elif userInput == '4':
-        listEntries(phonebook)
+        listEntries(contactlist)
     elif userInput == '5':
+        saveContactList(contactlist)
         os.system('clear')
