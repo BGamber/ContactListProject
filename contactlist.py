@@ -3,7 +3,7 @@
 
 import os
 
-class Contact():
+class Contact(object):
     def __init__(self, first, last, phone):
         self.first = first
         self.last = last
@@ -77,9 +77,10 @@ def createEntry(phonebook):
 
     count = 0
     name = raw_input("Enter name: ")
-    if len(name.split(" ")) > 1:
-        first = name.split(' ')[0]
-        last = name.split(' ')[1]
+    nameSplit = name.split(" ")
+    if len(nameSplit) > 1:
+        first = nameSplit[0]
+        last = " ".join(nameSplit[1:])
     else:
         first = name
         last = raw_input("Enter last name: ")
